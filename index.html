@@ -1,0 +1,4439 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0d12">
+<title>Hide & Seek Snapshot</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  background:#0b0d12;
+  color:#f4f4f5;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+
+button,input{
+  font:inherit;
+}
+
+button{
+  border:0;
+  border-radius:12px;
+  padding:12px 16px;
+  background:#5865f2;
+  color:white;
+  font-weight:700;
+  cursor:pointer;
+}
+
+button.secondary{
+  background:#252936;
+}
+
+button.danger{
+  background:#d33;
+}
+
+button.success{
+  background:#198754;
+}
+
+button:disabled{
+  opacity:.5;
+  cursor:not-allowed;
+}
+
+input{
+  width:100%;
+  padding:13px;
+  border-radius:12px;
+  border:1px solid #303441;
+  background:#171a22;
+  color:white;
+  outline:none;
+}
+
+input:focus{
+  border-color:#5865f2;
+}
+
+.hidden{
+  display:none!important;
+}
+
+.app{
+  width:min(700px,100%);
+  margin:auto;
+  padding:18px;
+}
+
+header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  margin-bottom:18px;
+}
+
+.logo{
+  font-size:23px;
+  font-weight:900;
+}
+
+.card{
+  background:#151821;
+  border:1px solid #272b36;
+  border-radius:18px;
+  padding:18px;
+  margin-bottom:14px;
+}
+
+h1,h2,h3{
+  margin-top:0;
+}
+
+.small{
+  font-size:13px;
+  color:#9ca3af;
+}
+
+.muted{
+  color:#9ca3af;
+}
+
+.center{
+  text-align:center;
+}
+
+.row{
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+
+.row>*{
+  flex:1;
+}
+
+.stack{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.avatar{
+  width:45px;
+  height:45px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#252936;
+  overflow:hidden;
+  flex:none;
+}
+
+.avatar img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.avatar.big{
+  width:110px;
+  height:110px;
+  margin:0 auto 15px;
+  font-size:45px;
+}
+
+.avatar.big img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.user{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-width:0;
+}
+
+.user-info{
+  min-width:0;
+}
+
+.user-name{
+  font-weight:800;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.status{
+  font-size:12px;
+}
+
+.online{
+  color:#4ade80;
+}
+
+.offline{
+  color:#9ca3af;
+}
+
+.friend,
+.invite,
+.player,
+.leader{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  background:#1b1f29;
+  padding:12px;
+  border-radius:14px;
+}
+
+.friend .actions,
+.invite .actions{
+  margin-left:auto;
+  display:flex;
+  gap:6px;
+}
+
+.friend button,
+.invite button{
+  padding:8px 10px;
+  font-size:13px;
+}
+
+.nav{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+  margin-bottom:15px;
+}
+
+.nav button{
+  background:#1b1f29;
+}
+
+.nav button.active{
+  background:#5865f2;
+}
+
+.code{
+  font-size:38px;
+  letter-spacing:8px;
+  font-weight:900;
+  text-align:center;
+  margin:15px 0;
+}
+
+.role{
+  font-size:46px;
+  font-weight:900;
+  text-align:center;
+  margin:15px 0;
+}
+
+.timer{
+  font-size:55px;
+  font-weight:900;
+  text-align:center;
+}
+
+.progress{
+  height:10px;
+  background:#292d37;
+  border-radius:10px;
+  overflow:hidden;
+  margin:10px 0;
+}
+
+.progress div{
+  height:100%;
+  width:0%;
+  background:#5865f2;
+  transition:width .2s linear;
+}
+
+.snapshot{
+  width:100%;
+  border-radius:14px;
+  margin-top:10px;
+  display:block;
+}
+
+.chat{
+  height:260px;
+  overflow-y:auto;
+  background:#10131a;
+  border-radius:14px;
+  padding:10px;
+  margin-bottom:10px;
+}
+
+.chat-message{
+  margin-bottom:10px;
+}
+
+.chat-name{
+  font-weight:800;
+  font-size:13px;
+}
+
+.chat-text{
+  background:#20242e;
+  border-radius:10px;
+  padding:8px 10px;
+  display:inline-block;
+  max-width:90%;
+  word-break:break-word;
+}
+
+.winner{
+  font-size:32px;
+  font-weight:900;
+  text-align:center;
+  margin:15px 0;
+}
+
+.score{
+  margin-left:auto;
+  font-weight:900;
+  font-size:18px;
+}
+
+.stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px}
+.stat{background:#1b1f29;border-radius:14px;padding:14px;text-align:center}
+.stat-value{font-size:24px;font-weight:900}
+.badges{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.badge{background:#1b1f29;border-radius:14px;padding:12px;text-align:center}
+.badge.locked{opacity:.4}
+.badge-icon{font-size:30px}
+
+.profile-preview-label{
+  margin-bottom:8px;
+}
+
+.file-input{
+  display:none;
+}
+
+.upload-button{
+  display:block;
+  width:100%;
+  padding:13px 16px;
+  border-radius:12px;
+  background:#252936;
+  color:white;
+  font-weight:700;
+  text-align:center;
+  cursor:pointer;
+  margin-bottom:12px;
+}
+
+.preview-note{
+  text-align:center;
+  color:#9ca3af;
+  font-size:12px;
+  margin-top:8px;
+}
+
+.toast{
+  position:fixed;
+  left:50%;
+  bottom:20px;
+  transform:translateX(-50%);
+  background:#252936;
+  border:1px solid #3a3f4d;
+  padding:12px 16px;
+  border-radius:12px;
+  z-index:100;
+  max-width:90%;
+}
+
+hr{
+  border:0;
+  border-top:1px solid #292d37;
+  margin:16px 0;
+}
+
+video{
+  width:100%;
+  border-radius:14px;
+  background:#000;
+}
+
+@media(max-width:500px){
+  .app{
+    padding:12px;
+  }
+
+  .code{
+    font-size:30px;
+  }
+
+  .timer{
+    font-size:45px;
+  }
+
+  .friend,
+  .invite{
+    align-items:flex-start;
+  }
+
+  .friend .actions,
+  .invite .actions{
+    flex-direction:column;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<header>
+  <div class="logo">📸 Hide & Seek</div>
+  <div id="meMini"></div>
+</header>
+
+<section id="home">
+
+  <div class="card center">
+
+    <h1>Hide & Seek Snapshot</h1>
+
+    <p class="muted">
+      Hide. Take snapshots. Find everyone before the timer runs out.
+    </p>
+
+    <div class="stack">
+
+      <button onclick="createGame()">
+        Create Game
+      </button>
+
+      <div class="row">
+
+        <input
+          id="joinCode"
+          maxlength="6"
+          placeholder="ROOM CODE">
+
+        <button onclick="joinGame()">
+          Join
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="nav">
+
+    <button
+      id="socialBtn"
+      onclick="showHomeTab('social')">
+      👥 Social
+    </button>
+
+    <button
+      id="profileBtn"
+      onclick="showHomeTab('profile')">
+      👤 Profile
+    </button>
+
+    <button
+      id="invitesBtn"
+      onclick="showHomeTab('invites')">
+      📨 Invites
+    </button>
+
+  </div>
+
+  <div id="socialTab" class="card">
+
+    <h2>Friends</h2>
+
+    <div class="row">
+
+      <input
+        id="friendUsername"
+        placeholder="Username">
+
+      <button onclick="addFriend()">
+        Add
+      </button>
+
+    </div>
+
+    <div
+      id="friendsList"
+      class="stack"
+      style="margin-top:12px">
+
+      <div class="muted">
+        Loading friends...
+      </div>
+
+    </div>
+
+  </div>
+
+  <div id="profileTab" class="card hidden">
+
+    <h2>Profile</h2>
+
+    <div class="center">
+
+      <div
+        id="profileAvatarPreview"
+        class="avatar big">
+      </div>
+
+      <div class="profile-preview-label">
+        <strong>Profile Picture</strong>
+      </div>
+
+      <div class="preview-note">
+        Choose a picture from your device.
+      </div>
+
+    </div>
+
+    <div style="margin-top:18px">
+
+      <label class="small">
+        Username
+      </label>
+
+      <input
+        id="profileUsername"
+        maxlength="24"
+        placeholder="Username">
+
+    </div>
+
+    <div style="margin-top:16px">
+
+      <label
+        for="avatarFile"
+        class="upload-button">
+        📷 Choose Profile Picture
+      </label>
+
+      <input
+        id="avatarFile"
+        class="file-input"
+        type="file"
+        accept="image/*"
+        onchange="previewAvatar(event)">
+
+    </div>
+
+    <div
+      id="avatarUploadStatus"
+      class="small center"
+      style="margin-bottom:12px">
+    </div>
+
+    <button
+      style="width:100%"
+      onclick="saveProfile()">
+      Save Profile
+    </button>
+
+    <hr>
+
+    <h3>📊 Your Stats</h3>
+    <div id="profileStats" class="stat-grid"></div>
+
+    <h3 style="margin-top:18px">🏆 Rewards</h3>
+    <div id="profileBadges" class="badges"></div>
+
+  </div>
+
+  <div id="invitesTab" class="card hidden">
+
+    <h2>Game Invites</h2>
+
+    <div
+      id="invitesList"
+      class="stack">
+
+      <div class="muted">
+        No invites.
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+<section id="lobby" class="hidden">
+
+  <div class="card center">
+
+    <h2>Waiting Room</h2>
+
+    <div class="small">
+      Room Code
+    </div>
+
+    <div
+      id="roomCode"
+      class="code">
+      ------
+    </div>
+
+    <button onclick="copyRoomCode()">
+      Copy Code
+    </button>
+
+  </div>
+
+  <div class="card">
+
+    <h2>Players</h2>
+
+    <div
+      id="lobbyPlayers"
+      class="stack">
+    </div>
+
+  </div>
+
+  <div class="card">
+
+    <button
+      id="startButton"
+      style="width:100%"
+      onclick="startGame()">
+      Start Game
+    </button>
+
+    <button
+      class="danger"
+      style="width:100%;margin-top:8px"
+      onclick="leaveRoom()">
+      Leave Game
+    </button>
+
+  </div>
+
+</section>
+
+<section id="roleScreen" class="hidden">
+
+  <div class="card center">
+
+    <div class="small">
+      YOUR ROLE
+    </div>
+
+    <div
+      id="roleText"
+      class="role">
+      ?
+    </div>
+
+    <div
+      id="roleDescription"
+      class="muted">
+    </div>
+
+    <button
+      style="margin-top:20px"
+      onclick="enterGameScreen()">
+      Continue
+    </button>
+
+  </div>
+
+</section>
+
+<section id="game" class="hidden">
+
+  <div class="card">
+
+    <div class="row">
+
+      <div>
+
+        <div class="small">
+          ROUND
+        </div>
+
+        <h2 id="roundText">
+          1 / 5
+        </h2>
+
+      </div>
+
+      <div>
+
+        <div class="small">
+          TIME
+        </div>
+
+        <div
+          id="timer"
+          class="timer"
+          style="font-size:35px">
+          60
+        </div>
+
+      </div>
+
+    </div>
+
+    <div class="progress">
+      <div id="roundProgress"></div>
+    </div>
+
+    <div
+      id="gameInstructions"
+      class="muted">
+    </div>
+
+  </div>
+
+  <div
+    id="hiderPanel"
+    class="card hidden">
+
+    <h2>
+      📸 Take Snapshot
+    </h2>
+
+    <video
+      id="camera"
+      autoplay
+      playsinline>
+    </video>
+
+    <div
+      class="row"
+      style="margin-top:10px">
+
+      <button id="snapshotButton" onclick="takeSnapshot()">
+        Take Snapshot
+      </button>
+
+      <button
+        class="secondary"
+        onclick="startCamera()">
+        Camera
+      </button>
+
+    </div>
+
+    <canvas
+      id="canvas"
+      class="hidden">
+    </canvas>
+
+    <div
+      id="snapshotStatus"
+      class="small"
+      style="margin-top:8px">
+    </div>
+
+  </div>
+
+  <div
+    id="seekerPanel"
+    class="card hidden">
+
+    <h2>
+      🔎 Find the Hiders
+    </h2>
+
+    <div class="small" style="margin-bottom:12px">
+      📍 <strong>Found Location</strong> = +250 points · 🚨 <strong>Tag Hider</strong> = +500 points
+    </div>
+
+    <div
+      id="snapshotList"
+      class="stack">
+    </div>
+
+    <hr style="margin:18px 0">
+
+    <h3>🏷️ Tag a Hider</h3>
+    <div class="small" style="margin-bottom:10px">
+      Use this when you have physically found a Hider. This is separate from finding their snapshot location.
+    </div>
+    <div
+      id="tagHiderList"
+      class="stack">
+    </div>
+
+  </div>
+
+  <div class="card">
+
+    <h2>
+      💬 Chat
+    </h2>
+
+    <div
+      id="chat"
+      class="chat">
+    </div>
+
+    <div class="row">
+
+      <input
+        id="chatInput"
+        maxlength="300"
+        placeholder="Type a message..."
+        onkeydown="if(event.key==='Enter')sendChat()">
+
+      <button onclick="sendChat()">
+        Send
+      </button>
+
+    </div>
+
+  </div>
+
+  <div class="card">
+
+    <button
+      class="danger"
+      style="width:100%"
+      onclick="hostEndGame()">
+      End Game
+    </button>
+
+  </div>
+
+</section>
+
+<section id="over" class="hidden">
+
+  <div class="card center">
+
+    <h1>
+      Game Over
+    </h1>
+
+    <div
+      id="winnerText"
+      class="winner">
+    </div>
+
+    <div
+      id="overText"
+      class="muted">
+    </div>
+
+  </div>
+
+  <div class="card">
+
+    <h2>
+      🏆 Leaderboard
+    </h2>
+
+    <div
+      id="leaderboard"
+      class="stack">
+    </div>
+
+  </div>
+
+  <div class="card">
+
+    <button
+      style="width:100%"
+      onclick="returnHome()">
+      Return Home
+    </button>
+
+  </div>
+
+</section>
+
+</div>
+
+<div
+  id="toast"
+  class="toast hidden">
+</div>
+
+<script>
+
+/* =========================================================
+   SUPABASE
+========================================================= */
+
+const SUPABASE_URL =
+  "https://sidkyplnswcyyhvkvrsf.supabase.co";
+
+const SUPABASE_KEY =
+  "sb_publishable_giMDO3hCkRd0M0o14QslkQ__MxNa3k4";
+
+const sb =
+  supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+
+
+/* =========================================================
+   GLOBAL STATE
+========================================================= */
+
+let user = null;
+let profile = null;
+let room = null;
+let roomPlayers = [];
+let myPlayer = null;
+
+let cameraStream = null;
+
+let roomPoll = null;
+let friendPoll = null;
+let invitePoll = null;
+let presenceTimer = null;
+let timerInterval = null;
+
+let chatChannel = null;
+let inviteChannel = null;
+
+let selectedAvatarUrl = null;
+let roundSnapshotSubmitted = false;
+let statsFinalized = false;
+
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+const $ = id =>
+  document.getElementById(id);
+
+
+function show(id){
+  $(id).classList.remove("hidden");
+}
+
+
+function hide(id){
+  $(id).classList.add("hidden");
+}
+
+
+function toast(message){
+
+  $("toast").textContent =
+    message;
+
+  show("toast");
+
+  setTimeout(
+    () => hide("toast"),
+    2500
+  );
+}
+
+
+function escapeHtml(value){
+
+  return String(value ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+
+function avatarHtml(avatar){
+
+  if(
+    avatar &&
+    (
+      avatar.startsWith("http://") ||
+      avatar.startsWith("https://")
+    )
+  ){
+
+    return `
+      <img
+        src="${escapeHtml(avatar)}"
+        alt="Profile picture">
+    `;
+  }
+
+  return escapeHtml(
+    avatar || "🫥"
+  );
+}
+
+
+function online(lastSeen){
+
+  if(!lastSeen)
+    return false;
+
+  return Date.now() -
+    new Date(lastSeen).getTime() <
+    20000;
+}
+
+
+function formatTime(seconds){
+
+  return Math.max(
+    0,
+    Math.ceil(seconds)
+  );
+}
+
+
+/* =========================================================
+   AUTH
+========================================================= */
+
+async function init(){
+
+  let {
+    data:{session}
+  } =
+    await sb.auth.getSession();
+
+
+  if(!session){
+
+    const result =
+      await sb.auth.signInAnonymously();
+
+    if(result.error){
+
+      console.error(result.error);
+
+      toast(
+        result.error.message
+      );
+
+      return;
+    }
+
+    session =
+      result.data.session;
+  }
+
+
+  user =
+    session.user;
+
+
+  await ensureProfile();
+
+  renderMe();
+
+  await loadProfileForm();
+
+  await loadFriends();
+
+  await loadInvites();
+
+  startBackgroundUpdates();
+}
+
+
+async function ensureProfile(){
+
+  const {
+    data,
+    error
+  } =
+    await sb
+      .from("profiles")
+      .select("*")
+      .eq("id",user.id)
+      .maybeSingle();
+
+
+  if(error){
+
+    console.error(error);
+
+    toast(error.message);
+
+    return;
+  }
+
+
+  if(data){
+
+    profile =
+      data;
+
+
+    await sb
+      .from("profiles")
+      .update({
+        last_seen:
+          new Date().toISOString()
+      })
+      .eq("id",user.id);
+
+
+    return;
+  }
+
+
+  const defaultUsername =
+    "Player" +
+    Math.floor(
+      Math.random()*9000+1000
+    );
+
+
+  const {
+    data:newProfile,
+    error:createError
+  } =
+    await sb
+      .from("profiles")
+      .insert({
+        id:user.id,
+        username:defaultUsername,
+        avatar:"🫥",
+        last_seen:
+          new Date().toISOString()
+      })
+      .select()
+      .single();
+
+
+  if(createError){
+
+    console.error(createError);
+
+    toast(
+      createError.message
+    );
+
+    return;
+  }
+
+
+  profile =
+    newProfile;
+}
+
+
+/* =========================================================
+   DISPLAY CURRENT USER
+========================================================= */
+
+function renderMe(){
+
+  if(!profile)
+    return;
+
+
+  $("meMini").innerHTML = `
+
+    <div class="user">
+
+      <div class="avatar">
+        ${avatarHtml(profile.avatar)}
+      </div>
+
+      <div class="user-name">
+        ${escapeHtml(profile.username)}
+      </div>
+
+    </div>
+
+  `;
+}
+
+
+/* =========================================================
+   HOME TABS
+========================================================= */
+
+function showHomeTab(tab){
+
+  hide("socialTab");
+  hide("profileTab");
+  hide("invitesTab");
+
+  $("socialBtn")
+    .classList.remove("active");
+
+  $("profileBtn")
+    .classList.remove("active");
+
+  $("invitesBtn")
+    .classList.remove("active");
+
+
+  if(tab === "social"){
+
+    show("socialTab");
+
+    $("socialBtn")
+      .classList.add("active");
+
+    loadFriends();
+  }
+
+
+  if(tab === "profile"){
+
+    show("profileTab");
+
+    $("profileBtn")
+      .classList.add("active");
+
+    loadProfileForm();
+  }
+
+
+  if(tab === "invites"){
+
+    show("invitesTab");
+
+    $("invitesBtn")
+      .classList.add("active");
+
+    loadInvites();
+  }
+}
+
+
+/* =========================================================
+   PROFILE
+========================================================= */
+
+async function loadProfileForm(){
+
+  if(!profile)
+    return;
+
+
+  $("profileUsername").value =
+    profile.username || "";
+
+
+  $("avatarUploadStatus").textContent =
+    "";
+
+
+  selectedAvatarUrl =
+    (
+      profile.avatar &&
+      (
+        profile.avatar.startsWith("http://") ||
+        profile.avatar.startsWith("https://")
+      )
+    )
+      ? profile.avatar
+      : null;
+
+
+  $("profileAvatarPreview").innerHTML =
+    avatarHtml(
+      profile.avatar
+    );
+
+  await renderProfileStats();
+}
+
+
+function previewAvatar(event){
+
+  const file =
+    event.target.files?.[0];
+
+
+  if(!file)
+    return;
+
+
+  if(!file.type.startsWith("image/")){
+
+    toast(
+      "Please choose an image."
+    );
+
+    event.target.value = "";
+
+    return;
+  }
+
+
+  if(file.size > 5 * 1024 * 1024){
+
+    toast(
+      "Profile pictures must be under 5 MB."
+    );
+
+    event.target.value = "";
+
+    return;
+  }
+
+
+  const reader =
+    new FileReader();
+
+
+  reader.onload = () => {
+
+    $("profileAvatarPreview").innerHTML = `
+      <img
+        src="${reader.result}"
+        alt="Profile picture preview">
+    `;
+
+  };
+
+
+  reader.readAsDataURL(file);
+
+  $("avatarUploadStatus").textContent =
+    "Image selected. Tap Save Profile.";
+}
+
+
+async function uploadAvatar(file){
+
+  const extension =
+    (
+      file.name
+        .split(".")
+        .pop() ||
+      "jpg"
+    )
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g,"");
+
+
+  const filename =
+    `${user.id}/profile-${Date.now()}.${extension}`;
+
+
+  const {
+    error:uploadError
+  } =
+    await sb.storage
+      .from("avatars")
+      .upload(
+        filename,
+        file,
+        {
+          contentType:file.type,
+          upsert:false
+        }
+      );
+
+
+  if(uploadError){
+
+    console.error(uploadError);
+
+    throw uploadError;
+  }
+
+
+  const {
+    data
+  } =
+    sb.storage
+      .from("avatars")
+      .getPublicUrl(filename);
+
+
+  return data.publicUrl;
+}
+
+
+async function saveProfile(){
+
+  const username =
+    $("profileUsername")
+      .value
+      .trim();
+
+
+  if(username.length < 2){
+
+    toast(
+      "Username must be at least 2 characters."
+    );
+
+    return;
+  }
+
+
+  if(username.length > 24){
+
+    toast(
+      "Username is too long."
+    );
+
+    return;
+  }
+
+
+  const file =
+    $("avatarFile")
+      .files?.[0];
+
+
+  $("avatarUploadStatus").textContent =
+    "";
+
+
+  let avatar =
+    profile.avatar || "🫥";
+
+
+  try{
+
+    if(file){
+
+      $("avatarUploadStatus").textContent =
+        "Uploading picture...";
+
+
+      avatar =
+        await uploadAvatar(file);
+    }
+
+
+    const {
+      data,
+      error
+    } =
+      await sb
+        .from("profiles")
+        .update({
+          username,
+          avatar,
+          last_seen:
+            new Date().toISOString()
+        })
+        .eq("id",user.id)
+        .select()
+        .single();
+
+
+    if(error)
+      throw error;
+
+
+    profile =
+      data;
+
+
+    $("avatarFile").value =
+      "";
+
+
+    selectedAvatarUrl =
+      profile.avatar;
+
+
+    renderMe();
+
+
+    $("profileAvatarPreview").innerHTML =
+      avatarHtml(
+        profile.avatar
+      );
+
+
+    $("avatarUploadStatus").textContent =
+      "✅ Profile saved.";
+
+
+    if(room){
+
+      await sb
+        .from("room_players")
+        .update({
+          username:profile.username,
+          avatar:profile.avatar
+        })
+        .eq("user_id",user.id)
+        .eq("room_id",room.id);
+    }
+
+
+    await loadFriends();
+
+
+    toast(
+      "Profile saved!"
+    );
+
+  }catch(error){
+
+    console.error(error);
+
+    $("avatarUploadStatus").textContent =
+      "Upload failed.";
+
+    toast(
+      error.message ||
+      "Could not save profile."
+    );
+  }
+}
+
+
+/* =========================================================
+   FRIENDS
+========================================================= */
+
+/*
+  FIX:
+  Do NOT use maybeSingle() here.
+
+  A username is not guaranteed to be unique in the
+  database, so Supabase can return multiple rows.
+
+  We request at most 2 rows and handle:
+    0 = not found
+    1 = found
+    2 = duplicate username
+*/
+
+async function addFriend(){
+
+  const username =
+    $("friendUsername")
+      .value
+      .trim();
+
+
+  if(!username){
+
+    toast(
+      "Enter a username."
+    );
+
+    return;
+  }
+
+
+  const {
+    data:matches,
+    error:lookupError
+  } =
+    await sb
+      .from("profiles")
+      .select(
+        "id,username,avatar,last_seen"
+      )
+      .ilike(
+        "username",
+        username
+      )
+      .neq(
+        "id",
+        user.id
+      )
+      .limit(2);
+
+
+  if(lookupError){
+
+    console.error(
+      "Friend lookup error:",
+      lookupError
+    );
+
+    toast(
+      "Could not search for that player: " +
+      lookupError.message
+    );
+
+    return;
+  }
+
+
+  if(!matches || matches.length === 0){
+
+    toast(
+      "User not found."
+    );
+
+    return;
+  }
+
+
+  /*
+    If there is more than one matching username,
+    do NOT guess which player they meant.
+  */
+
+  if(matches.length > 1){
+
+    toast(
+      "More than one player has that username. Please choose a unique username."
+    );
+
+    return;
+  }
+
+
+  const friend =
+    matches[0];
+
+
+  /*
+    Also avoid maybeSingle() here.
+
+    If duplicate friendship rows already exist,
+    maybeSingle() would produce the same
+    "multiple rows returned" error.
+  */
+
+  const {
+    data:existingRows,
+    error:existingError
+  } =
+    await sb
+      .from("friendships")
+      .select("*")
+      .eq(
+        "user_id",
+        user.id
+      )
+      .eq(
+        "friend_id",
+        friend.id
+      )
+      .limit(1);
+
+
+  if(existingError){
+
+    console.error(
+      "Friendship lookup error:",
+      existingError
+    );
+
+    toast(
+      existingError.message
+    );
+
+    return;
+  }
+
+
+  if(
+    existingRows &&
+    existingRows.length > 0
+  ){
+
+    toast(
+      "Already added."
+    );
+
+    return;
+  }
+
+
+  const {
+    error:insertError
+  } =
+    await sb
+      .from("friendships")
+      .insert({
+        user_id:user.id,
+        friend_id:friend.id
+      });
+
+
+  if(insertError){
+
+    if(
+      insertError.code ===
+      "23505"
+    ){
+
+      toast(
+        "Already added."
+      );
+
+    }else{
+
+      console.error(
+        "Friend insert error:",
+        insertError
+      );
+
+      toast(
+        insertError.message
+      );
+    }
+
+    return;
+  }
+
+
+  $("friendUsername").value =
+    "";
+
+
+  toast(
+    "Friend added."
+  );
+
+
+  await loadFriends();
+}
+
+
+async function loadFriends(){
+
+  if(!user)
+    return;
+
+
+  const {
+    data:links,
+    error
+  } =
+    await sb
+      .from("friendships")
+      .select(
+        "user_id,friend_id"
+      )
+      .or(
+        `user_id.eq.${user.id},friend_id.eq.${user.id}`
+      );
+
+
+  if(error){
+
+    console.error(error);
+
+    $("friendsList").innerHTML =
+      `<div class="muted">
+        ${escapeHtml(error.message)}
+      </div>`;
+
+    return;
+  }
+
+
+  const ids = [];
+
+
+  for(
+    const link of links || []
+  ){
+
+    const id =
+      link.user_id === user.id
+        ? link.friend_id
+        : link.user_id;
+
+
+    if(!ids.includes(id))
+      ids.push(id);
+  }
+
+
+  if(ids.length === 0){
+
+    $("friendsList").innerHTML =
+      `<div class="muted">
+        No friends yet. Add someone by username.
+      </div>`;
+
+    return;
+  }
+
+
+  const {
+    data:friends,
+    error:friendError
+  } =
+    await sb
+      .from("profiles")
+      .select(
+        "id,username,avatar,last_seen"
+      )
+      .in("id",ids);
+
+
+  if(friendError){
+
+    console.error(
+      friendError
+    );
+
+    return;
+  }
+
+
+  $("friendsList").innerHTML =
+    (friends || [])
+      .map(friend => {
+
+        const isOnline =
+          online(
+            friend.last_seen
+          );
+
+
+        return `
+
+          <div class="friend">
+
+            <div class="avatar">
+              ${avatarHtml(friend.avatar)}
+            </div>
+
+            <div class="user-info">
+
+              <div class="user-name">
+                ${escapeHtml(friend.username)}
+              </div>
+
+              <div
+                class="status ${
+                  isOnline
+                    ? "online"
+                    : "offline"
+                }">
+
+                ${
+                  isOnline
+                    ? "● Online"
+                    : "○ Offline"
+                }
+
+              </div>
+
+            </div>
+
+            <div class="actions">
+
+              ${
+                room
+                  ? `
+                    <button
+                      onclick="inviteFriend('${friend.id}')">
+                      Invite
+                    </button>
+                  `
+                  : ""
+              }
+
+              <button
+                class="secondary"
+                onclick="removeFriend('${friend.id}')">
+                Remove
+              </button>
+
+            </div>
+
+          </div>
+
+        `;
+
+      })
+      .join("");
+}
+
+
+async function removeFriend(friendId){
+
+  const {
+    error
+  } =
+    await sb
+      .from("friendships")
+      .delete()
+      .eq(
+        "user_id",
+        user.id
+      )
+      .eq(
+        "friend_id",
+        friendId
+      );
+
+
+  if(error){
+
+    toast(
+      error.message
+    );
+
+    return;
+  }
+
+
+  toast(
+    "Friend removed."
+  );
+
+
+  await loadFriends();
+}
+
+
+/* =========================================================
+   INVITES
+========================================================= */
+
+async function inviteFriend(friendId){
+
+  if(!room){
+
+    toast(
+      "You need to be in a game first."
+    );
+
+    return;
+  }
+
+
+  const {
+    data:existingRows,
+    error:existingError
+  } =
+    await sb
+      .from("game_invites")
+      .select("id")
+      .eq(
+        "from_user_id",
+        user.id
+      )
+      .eq(
+        "to_user_id",
+        friendId
+      )
+      .eq(
+        "room_id",
+        room.id
+      )
+      .eq(
+        "status",
+        "pending"
+      )
+      .limit(1);
+
+
+  if(existingError){
+
+    console.error(
+      existingError
+    );
+
+    toast(
+      existingError.message
+    );
+
+    return;
+  }
+
+
+  if(
+    existingRows &&
+    existingRows.length > 0
+  ){
+
+    toast(
+      "Invite already sent."
+    );
+
+    return;
+  }
+
+
+  const {
+    error
+  } =
+    await sb
+      .from("game_invites")
+      .insert({
+        from_user_id:user.id,
+        to_user_id:friendId,
+        room_id:room.id,
+        status:"pending"
+      });
+
+
+  if(error){
+
+    console.error(error);
+
+    toast(
+      error.message
+    );
+
+    return;
+  }
+
+
+  toast(
+    "Invite sent!"
+  );
+}
+
+
+async function loadInvites(){
+
+  if(!user)
+    return;
+
+
+  const {
+    data,
+    error
+  } =
+    await sb
+      .from("game_invites")
+      .select("*")
+      .eq(
+        "to_user_id",
+        user.id
+      )
+      .eq(
+        "status",
+        "pending"
+      )
+      .order(
+        "created_at",
+        {ascending:false}
+      );
+
+
+  if(error){
+
+    console.error(error);
+
+    return;
+  }
+
+
+  if(!data || data.length === 0){
+
+    $("invitesList").innerHTML =
+      `<div class="muted">
+        No pending invites.
+      </div>`;
+
+    return;
+  }
+
+
+  const roomIds =
+    [
+      ...new Set(
+        data.map(i => i.room_id)
+      )
+    ];
+
+
+  const {
+    data:rooms
+  } =
+    await sb
+      .from("rooms")
+      .select(
+        "id,code,status"
+      )
+      .in(
+        "id",
+        roomIds
+      );
+
+
+  const roomMap =
+    Object.fromEntries(
+      (rooms || [])
+        .map(
+          r => [r.id,r]
+        )
+    );
+
+
+  const senderIds =
+    [
+      ...new Set(
+        data.map(
+          i => i.from_user_id
+        )
+      )
+    ];
+
+
+  const {
+    data:senders
+  } =
+    await sb
+      .from("profiles")
+      .select(
+        "id,username,avatar"
+      )
+      .in(
+        "id",
+        senderIds
+      );
+
+
+  const senderMap =
+    Object.fromEntries(
+      (senders || [])
+        .map(
+          p => [p.id,p]
+        )
+    );
+
+
+  $("invitesList").innerHTML =
+    data.map(invite => {
+
+      const sender =
+        senderMap[
+          invite.from_user_id
+        ] || {};
+
+
+      const invitedRoom =
+        roomMap[
+          invite.room_id
+        ];
+
+
+      return `
+
+        <div class="invite">
+
+          <div class="avatar">
+            ${avatarHtml(sender.avatar)}
+          </div>
+
+          <div class="user-info">
+
+            <div class="user-name">
+              ${escapeHtml(
+                sender.username ||
+                "Player"
+              )}
+            </div>
+
+            <div class="small">
+
+              invited you to room
+
+              <strong>
+                ${escapeHtml(
+                  invitedRoom?.code ||
+                  "------"
+                )}
+              </strong>
+
+            </div>
+
+          </div>
+
+          <div class="actions">
+
+            <button
+              class="success"
+              onclick="respondInvite(
+                '${invite.id}',
+                true
+              )">
+              Accept
+            </button>
+
+            <button
+              class="secondary"
+              onclick="respondInvite(
+                '${invite.id}',
+                false
+              )">
+              Decline
+            </button>
+
+          </div>
+
+        </div>
+
+      `;
+
+    }).join("");
+}
+
+
+async function respondInvite(
+  inviteId,
+  accept
+){
+
+  const {
+    data:invite,
+    error
+  } =
+    await sb
+      .from("game_invites")
+      .select("*")
+      .eq(
+        "id",
+        inviteId
+      )
+      .eq(
+        "to_user_id",
+        user.id
+      )
+      .eq(
+        "status",
+        "pending"
+      )
+      .single();
+
+
+  if(error){
+
+    toast(
+      "Invite is no longer available."
+    );
+
+    await loadInvites();
+
+    return;
+  }
+
+
+  const newStatus =
+    accept
+      ? "accepted"
+      : "declined";
+
+
+  const {
+    error:updateError
+  } =
+    await sb
+      .from("game_invites")
+      .update({
+        status:newStatus
+      })
+      .eq(
+        "id",
+        inviteId
+      )
+      .eq(
+        "to_user_id",
+        user.id
+      );
+
+
+  if(updateError){
+
+    toast(
+      updateError.message
+    );
+
+    return;
+  }
+
+
+  if(!accept){
+
+    toast(
+      "Invite declined."
+    );
+
+    await loadInvites();
+
+    return;
+  }
+
+
+  const {
+    data:targetRoom,
+    error:roomError
+  } =
+    await sb
+      .from("rooms")
+      .select("*")
+      .eq(
+        "id",
+        invite.room_id
+      )
+      .single();
+
+
+  if(roomError || !targetRoom){
+
+    toast(
+      "That game no longer exists."
+    );
+
+    await loadInvites();
+
+    return;
+  }
+
+
+  if(
+    targetRoom.status !==
+    "waiting"
+  ){
+
+    toast(
+      "That game has already started."
+    );
+
+    await loadInvites();
+
+    return;
+  }
+
+
+  await leaveCurrentRoomSilently();
+
+
+  const {
+    error:joinError
+  } =
+    await sb
+      .from("room_players")
+      .insert({
+        room_id:targetRoom.id,
+        user_id:user.id,
+        username:profile.username,
+        avatar:profile.avatar,
+        role:"hider",
+        found:false
+      });
+
+
+  if(joinError){
+
+    console.error(
+      joinError
+    );
+
+    toast(
+      joinError.message
+    );
+
+    return;
+  }
+
+
+  room =
+    targetRoom;
+
+
+  showOnly("lobby");
+
+  await refreshRoom();
+
+  startRoomPolling();
+
+  toast(
+    "Joined game!"
+  );
+}
+
+
+/* =========================================================
+   BACKGROUND UPDATES
+========================================================= */
+
+function startBackgroundUpdates(){
+
+  clearInterval(friendPoll);
+  clearInterval(invitePoll);
+  clearInterval(presenceTimer);
+
+
+  friendPoll =
+    setInterval(
+      loadFriends,
+      5000
+    );
+
+
+  invitePoll =
+    setInterval(
+      loadInvites,
+      5000
+    );
+
+
+  presenceTimer =
+    setInterval(
+      async () => {
+
+        if(!user)
+          return;
+
+
+        await sb
+          .from("profiles")
+          .update({
+            last_seen:
+              new Date().toISOString()
+          })
+          .eq(
+            "id",
+            user.id
+          );
+
+      },
+      10000
+    );
+}
+
+
+/* =========================================================
+   SCREEN CONTROL
+========================================================= */
+
+function showOnly(id){
+
+  [
+    "home",
+    "lobby",
+    "roleScreen",
+    "game",
+    "over"
+  ].forEach(
+    x => hide(x)
+  );
+
+
+  show(id);
+}
+
+
+function returnHome(){
+
+  stopRoomPolling();
+
+  stopGameTimer();
+
+  stopCamera();
+
+  unsubscribeChat();
+
+  unsubscribeInvites();
+
+
+  room = null;
+
+  roomPlayers = [];
+
+  myPlayer = null;
+
+
+  showOnly("home");
+
+  showHomeTab("social");
+
+  loadFriends();
+
+  loadInvites();
+}
+
+
+/* =========================================================
+   ROOM CREATION
+========================================================= */
+
+function generateCode(){
+
+  const chars =
+    "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+  let code = "";
+
+
+  for(
+    let i=0;
+    i<6;
+    i++
+  ){
+
+    code +=
+      chars[
+        Math.floor(
+          Math.random() *
+          chars.length
+        )
+      ];
+  }
+
+
+  return code;
+}
+
+
+async function createGame(){
+
+  if(!profile){
+
+    toast(
+      "Profile is still loading."
+    );
+
+    return;
+  }
+
+
+  const code =
+    generateCode();
+
+
+  const {
+    data:newRoom,
+    error
+  } =
+    await sb
+      .from("rooms")
+      .insert({
+        code,
+        host_id:user.id,
+        status:"waiting",
+        round:1,
+        round_started_at:null,
+        seeker_id:null,
+        winner:null
+      })
+      .select()
+      .single();
+
+
+  if(error){
+
+    console.error(error);
+
+    toast(
+      error.message
+    );
+
+    return;
+  }
+
+
+  const {
+    error:playerError
+  } =
+    await sb
+      .from("room_players")
+      .insert({
+        room_id:newRoom.id,
+        user_id:user.id,
+        username:profile.username,
+        avatar:profile.avatar,
+        role:"hider",
+        found:false
+      });
+
+
+  if(playerError){
+
+    console.error(
+      playerError
+    );
+
+
+    await sb
+      .from("rooms")
+      .delete()
+      .eq(
+        "id",
+        newRoom.id
+      );
+
+
+    toast(
+      playerError.message
+    );
+
+    return;
+  }
+
+
+  room =
+    newRoom;
+
+
+  showOnly("lobby");
+
+  await refreshRoom();
+
+  startRoomPolling();
+
+  await loadFriends();
+}
+
+
+/* =========================================================
+   JOIN GAME
+========================================================= */
+
+async function joinGame(){
+
+  const code =
+    $("joinCode")
+      .value
+      .trim()
+      .toUpperCase();
+
+
+  if(code.length !== 6){
+
+    toast(
+      "Enter a 6-character room code."
+    );
+
+    return;
+  }
+
+
+  const {
+    data:foundRoom,
+    error
+  } =
+    await sb
+      .from("rooms")
+      .select("*")
+      .eq(
+        "code",
+        code
+      )
+      .maybeSingle();
+
+
+  if(error || !foundRoom){
+
+    toast(
+      "Room not found."
+    );
+
+    return;
+  }
+
+
+  if(
+    foundRoom.status !==
+    "waiting"
+  ){
+
+    toast(
+      "That game has already started."
+    );
+
+    return;
+  }
+
+
+  const {
+    data:alreadyRows,
+    error:alreadyError
+  } =
+    await sb
+      .from("room_players")
+      .select("id")
+      .eq(
+        "room_id",
+        foundRoom.id
+      )
+      .eq(
+        "user_id",
+        user.id
+      )
+      .limit(1);
+
+
+  if(alreadyError){
+
+    toast(
+      alreadyError.message
+    );
+
+    return;
+  }
+
+
+  if(
+    alreadyRows &&
+    alreadyRows.length > 0
+  ){
+
+    room =
+      foundRoom;
+
+    showOnly("lobby");
+
+    await refreshRoom();
+
+    startRoomPolling();
+
+    return;
+  }
+
+
+  const {
+    error:joinError
+  } =
+    await sb
+      .from("room_players")
+      .insert({
+        room_id:foundRoom.id,
+        user_id:user.id,
+        username:profile.username,
+        avatar:profile.avatar,
+        role:"hider",
+        found:false
+      });
+
+
+  if(joinError){
+
+    console.error(
+      joinError
+    );
+
+    toast(
+      joinError.message
+    );
+
+    return;
+  }
+
+
+  room =
+    foundRoom;
+
+  showOnly("lobby");
+
+  await refreshRoom();
+
+  startRoomPolling();
+}
+
+
+/* =========================================================
+   ROOM REFRESH
+========================================================= */
+
+async function refreshRoom(){
+
+  if(!room)
+    return;
+
+
+  const {
+    data:latestRoom,
+    error:roomError
+  } =
+    await sb
+      .from("rooms")
+      .select("*")
+      .eq(
+        "id",
+        room.id
+      )
+      .single();
+
+
+  if(roomError){
+
+    console.error(
+      roomError
+    );
+
+    return;
+  }
+
+
+  room =
+    latestRoom;
+
+
+  const {
+    data:players,
+    error:playerError
+  } =
+    await sb
+      .from("room_players")
+      .select("*")
+      .eq(
+        "room_id",
+        room.id
+      )
+      .order(
+        "created_at",
+        {ascending:true}
+      );
+
+
+  if(playerError){
+
+    console.error(
+      playerError
+    );
+
+    return;
+  }
+
+
+  roomPlayers =
+    players || [];
+
+
+  myPlayer =
+    roomPlayers.find(
+      p =>
+        p.user_id === user.id
+    ) || null;
+
+  if(room.status === "playing" && myPlayer){
+    const {data:mine} = await sb.from("snapshots").select("id").eq("room_id",room.id).eq("user_id",user.id).eq("round",room.round).limit(1);
+    roundSnapshotSubmitted = !!(mine && mine.length);
+  }
+
+
+  if(
+    room.status ===
+    "waiting"
+  ){
+
+    renderLobby();
+
+
+    if(
+      $("lobby")
+        .classList
+        .contains("hidden")
+    ){
+
+      showOnly("lobby");
+    }
+
+
+    return;
+  }
+
+
+  if(
+    room.status ===
+    "ended"
+  ){
+
+    if(
+      $("over")
+        .classList
+        .contains("hidden")
+    ){
+
+      await finishScreen();
+    }
+
+
+    return;
+  }
+
+
+  if(
+    room.status ===
+    "playing"
+  ){
+
+    if(
+      $("roleScreen")
+        .classList
+        .contains("hidden") &&
+      $("game")
+        .classList
+        .contains("hidden")
+    ){
+
+      renderRoleScreen();
+
+      return;
+    }
+
+
+    if(
+      !$("game")
+        .classList
+        .contains("hidden")
+    ){
+
+      renderGame();
+    }
+  }
+}
+
+
+/* =========================================================
+   ROOM POLLING
+========================================================= */
+
+function startRoomPolling(){
+
+  stopRoomPolling();
+
+
+  roomPoll =
+    setInterval(
+      refreshRoom,
+      1000
+    );
+}
+
+
+function stopRoomPolling(){
+
+  if(roomPoll){
+
+    clearInterval(
+      roomPoll
+    );
+
+    roomPoll = null;
+  }
+}
+
+
+/* =========================================================
+   LOBBY
+========================================================= */
+
+function renderLobby(){
+
+  $("roomCode").textContent =
+    room.code ||
+    "------";
+
+
+  $("lobbyPlayers").innerHTML =
+    roomPlayers
+      .map(p => `
+
+        <div class="player">
+
+          <div class="avatar">
+            ${avatarHtml(p.avatar)}
+          </div>
+
+          <div class="user-info">
+
+            <div class="user-name">
+              ${escapeHtml(
+                p.username ||
+                "Player"
+              )}
+            </div>
+
+            <div class="small">
+
+              ${
+                p.user_id ===
+                room.host_id
+                  ? "👑 Host"
+                  : "Player"
+              }
+
+            </div>
+
+          </div>
+
+        </div>
+
+      `)
+      .join("");
+
+
+  $("startButton").disabled =
+    room.host_id !== user.id ||
+    roomPlayers.length < 2;
+}
+
+
+async function startGame(){
+
+  if(!room)
+    return;
+
+
+  if(
+    room.host_id !==
+    user.id
+  ){
+
+    toast(
+      "Only the host can start."
+    );
+
+    return;
+  }
+
+
+  if(roomPlayers.length < 2){
+
+    toast(
+      "Need at least 2 players."
+    );
+
+    return;
+  }
+
+
+  const players =
+    [...roomPlayers];
+
+
+  const seeker =
+    players[
+      Math.floor(
+        Math.random() *
+        players.length
+      )
+    ];
+
+
+  const {
+    error:roomError
+  } =
+    await sb
+      .from("rooms")
+      .update({
+        status:"playing",
+        round:1,
+        round_started_at:
+          new Date().toISOString(),
+        seeker_id:
+          seeker.user_id,
+        winner:null
+      })
+      .eq(
+        "id",
+        room.id
+      )
+      .eq(
+        "host_id",
+        user.id
+      );
+
+
+  if(roomError){
+
+    console.error(
+      roomError
+    );
+
+    toast(
+      roomError.message
+    );
+
+    return;
+  }
+
+
+  for(
+    const player of players
+  ){
+
+    await sb
+      .from("room_players")
+      .update({
+        role:
+          player.user_id ===
+          seeker.user_id
+            ? "seeker"
+            : "hider",
+        found:false,
+        location_points:0,
+        tag_points:0
+      })
+      .eq(
+        "id",
+        player.id
+      );
+  }
+
+
+  await refreshRoom();
+
+  renderRoleScreen();
+}
+
+
+/* =========================================================
+   ROLE SCREEN
+========================================================= */
+
+function renderRoleScreen(){
+
+  if(!myPlayer)
+    return;
+
+
+  showOnly("roleScreen");
+
+
+  if(
+    myPlayer.role ===
+    "seeker"
+  ){
+
+    $("roleText").textContent =
+      "🔎 SEEKER";
+
+
+    $("roleDescription").textContent =
+      "Find every Hider before they survive all 5 rounds.";
+
+  }else{
+
+    $("roleText").textContent =
+      "🫣 HIDER";
+
+
+    $("roleDescription").textContent =
+      "Hide from the Seeker. Survive all 5 rounds to win.";
+  }
+}
+
+
+function enterGameScreen(){
+
+  showOnly("game");
+
+  renderGame();
+
+  subscribeChat();
+
+
+  if(
+    myPlayer?.role ===
+    "hider"
+  ){
+
+    startCamera();
+  }
+}
+
+
+/* =========================================================
+   GAME
+========================================================= */
+
+function renderGame(){
+
+  if(!room || !myPlayer)
+    return;
+
+
+  $("roundText").textContent =
+    `${room.round || 1} / 5`;
+
+
+  if(
+    myPlayer.role ===
+    "seeker"
+  ){
+
+    show("seekerPanel");
+
+    hide("hiderPanel");
+
+
+    $("gameInstructions").textContent =
+      "Look through the snapshots and mark Hiders as found.";
+
+
+    loadSnapshots();
+    renderTagHiders();
+
+  }else{
+
+    show("hiderPanel");
+
+    hide("seekerPanel");
+
+
+    $("gameInstructions").textContent =
+      roundSnapshotSubmitted
+        ? "Snapshot submitted for this round. Stay hidden!"
+        : "Take a snapshot before the round ends. Stay hidden!";
+
+    $("snapshotButton").disabled = roundSnapshotSubmitted;
+  }
+
+
+  updateTimer();
+
+  startGameTimer();
+}
+
+
+/* =========================================================
+   TIMER
+========================================================= */
+
+function startGameTimer(){
+
+  stopGameTimer();
+
+
+  timerInterval =
+    setInterval(
+      updateTimer,
+      250
+    );
+}
+
+
+function stopGameTimer(){
+
+  if(timerInterval){
+
+    clearInterval(
+      timerInterval
+    );
+
+    timerInterval = null;
+  }
+}
+
+
+function updateTimer(){
+
+  if(
+    !room ||
+    room.status !==
+    "playing" ||
+    !room.round_started_at
+  ){
+
+    return;
+  }
+
+
+  const start =
+    new Date(
+      room.round_started_at
+    ).getTime();
+
+
+  const elapsed =
+    (Date.now() - start) /
+    1000;
+
+
+  const remaining =
+    Math.max(
+      0,
+      60 - elapsed
+    );
+
+
+  $("timer").textContent =
+    formatTime(
+      remaining
+    );
+
+
+  $("roundProgress").style.width =
+    `${Math.min(
+      100,
+      (elapsed / 60) * 100
+    )}%`;
+
+
+  if(
+    remaining <= 0 &&
+    room.host_id === user.id
+  ){
+
+    handleRoundEnd();
+  }
+}
+
+
+async function handleRoundEnd(){
+
+  if(!room || room.status !== "playing" || room.host_id !== user.id) return;
+
+  const currentRound = Number(room.round || 1);
+
+  // Any Hider without a successful DB snapshot is eliminated.
+  const {data:snapshots} = await sb.from("snapshots").select("user_id").eq("room_id",room.id).eq("round",currentRound);
+  const submitted = new Set((snapshots || []).map(x => x.user_id));
+  const missing = roomPlayers.filter(p => p.role === "hider" && !p.found && !submitted.has(p.user_id));
+
+  for(const p of missing){
+    await sb.from("room_players").update({found:true}).eq("room_id",room.id).eq("user_id",p.user_id);
+  }
+
+  await refreshRoom();
+
+  const hidersLeft = roomPlayers.filter(p => p.role === "hider" && !p.found);
+  if(hidersLeft.length === 0){
+    await endGame("seeker");
+    return;
+  }
+
+  if(currentRound >= 5){
+    await endGame("hiders");
+    return;
+  }
+
+  const nextRound = currentRound + 1;
+  const {error} = await sb.from("rooms").update({round:nextRound,round_started_at:new Date().toISOString()}).eq("id",room.id).eq("round",currentRound);
+  if(error){ console.error(error); return; }
+
+  roundSnapshotSubmitted = false;
+  await refreshRoom();
+}
+
+
+/* =========================================================
+   CAMERA
+========================================================= */
+
+async function startCamera(){
+
+  if(cameraStream)
+    return;
+
+
+  try{
+
+    cameraStream =
+      await navigator.mediaDevices
+        .getUserMedia({
+          video:{
+            facingMode:"environment"
+          },
+          audio:false
+        });
+
+
+    $("camera").srcObject =
+      cameraStream;
+
+  }catch(error){
+
+    console.error(error);
+
+
+    $("snapshotStatus").textContent =
+      "Camera permission is required to take snapshots.";
+  }
+}
+
+
+function stopCamera(){
+
+  if(cameraStream){
+
+    cameraStream
+      .getTracks()
+      .forEach(
+        track =>
+          track.stop()
+      );
+
+
+    cameraStream = null;
+  }
+
+
+  if($("camera")){
+
+    $("camera").srcObject =
+      null;
+  }
+}
+
+
+/* =========================================================
+   SNAPSHOT
+========================================================= */
+
+async function takeSnapshot(){
+  if(roundSnapshotSubmitted){ toast("You already submitted this round."); return; }
+  if(!cameraStream) await startCamera();
+  if(!cameraStream){ toast("Camera unavailable."); return; }
+
+  const video=$("camera"), canvas=$("canvas");
+  canvas.width=video.videoWidth||1280; canvas.height=video.videoHeight||720;
+  canvas.getContext("2d").drawImage(video,0,0,canvas.width,canvas.height);
+  $("snapshotStatus").textContent="Uploading...";
+  $("snapshotButton").disabled=true;
+
+  canvas.toBlob(async blob=>{
+    if(!blob){ $("snapshotStatus").textContent="Could not create snapshot."; $("snapshotButton").disabled=false; return; }
+    try{
+      const filename=`${room.id}/${user.id}/${room.round}-${Date.now()}.jpg`;
+      const {error:uploadError}=await sb.storage.from("snapshots").upload(filename,blob,{contentType:"image/jpeg",upsert:false});
+      if(uploadError) throw uploadError;
+      const {data:publicData}=sb.storage.from("snapshots").getPublicUrl(filename);
+      const {error:dbError}=await sb.from("snapshots").insert({room_id:room.id,user_id:user.id,username:profile.username,round:room.round,photo_url:publicData.publicUrl});
+      if(dbError){
+        if(dbError.code === "23505") throw new Error("You already submitted a snapshot this round.");
+        throw dbError;
+      }
+      roundSnapshotSubmitted=true;
+      $("snapshotStatus").textContent="✅ Snapshot uploaded!";
+      $("snapshotButton").disabled=true;
+      $("gameInstructions").textContent="Snapshot submitted for this round. Stay hidden!";
+      toast("Snapshot saved!");
+    }catch(error){
+      console.error(error);
+      $("snapshotStatus").textContent=error.message||"Snapshot upload failed.";
+      $("snapshotButton").disabled=false;
+    }
+  },"image/jpeg",0.82);
+}
+
+
+/* =========================================================
+   SNAPSHOTS / SEEKER
+========================================================= */
+
+async function loadSnapshots(){
+
+  if(!room)
+    return;
+
+
+  const {
+    data,
+    error
+  } =
+    await sb
+      .from("snapshots")
+      .select("*")
+      .eq(
+        "room_id",
+        room.id
+      )
+      .eq(
+        "round",
+        room.round
+      )
+      .order(
+        "created_at",
+        {ascending:false}
+      );
+
+
+  if(error){
+
+    console.error(
+      error
+    );
+
+
+    $("snapshotList").innerHTML =
+      `<div class="muted">
+        ${escapeHtml(error.message)}
+      </div>`;
+
+
+    return;
+  }
+
+
+  if(!data || data.length === 0){
+
+    $("snapshotList").innerHTML =
+      `<div class="muted">
+        No snapshots yet.
+      </div>`;
+
+
+    return;
+  }
+
+
+  $("snapshotList").innerHTML =
+    data
+      .map(snapshot => {
+
+        const player =
+          roomPlayers.find(
+            p =>
+              p.user_id ===
+              snapshot.user_id
+          );
+
+
+        if(player?.found)
+          return "";
+
+
+        return `
+
+          <div
+            class="card"
+            style="margin:0">
+
+            <div class="user">
+
+              <div class="avatar">
+                ${avatarHtml(
+                  player?.avatar
+                )}
+              </div>
+
+              <div class="user-info">
+
+                <div class="user-name">
+                  ${escapeHtml(
+                    snapshot.username ||
+                    player?.username ||
+                    "Hider"
+                  )}
+                </div>
+
+                <div class="small">
+                  Round
+                  ${escapeHtml(
+                    snapshot.round
+                  )}
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <img
+              class="snapshot"
+              src="${escapeHtml(
+                snapshot.photo_url
+              )}"
+              alt="Hider snapshot">
+
+
+            ${
+              player
+                ? `
+                  <button
+                    class="success"
+                    style="width:100%;margin-top:10px"
+                    onclick="markLocationFound('${snapshot.id}')"
+                    ${snapshot.location_found_by ? "disabled" : ""}>
+                    ${snapshot.location_found_by ? "✅ Location Found (+250)" : "📍 Found Location (+250)"}
+                  </button>
+                `
+                : ""
+            }
+
+          </div>
+
+        `;
+
+      })
+      .join("");
+
+  renderTagHiders();
+}
+
+
+function renderTagHiders(){
+
+  const list = $("tagHiderList");
+
+  if(!list || !room) return;
+
+  const hiders = roomPlayers.filter(p => p.role === "hider");
+
+  if(hiders.length === 0){
+    list.innerHTML = `<div class="muted">No Hiders in this game.</div>`;
+    return;
+  }
+
+  list.innerHTML = hiders.map(p => `
+    <div class="player">
+      <div class="avatar">${avatarHtml(p.avatar)}</div>
+      <div class="user-info">
+        <div class="user-name">${escapeHtml(p.username || "Hider")}</div>
+        <div class="small">${p.found ? "🚨 Tagged / Found" : "Still hiding"}</div>
+      </div>
+      <div class="actions">
+        <button class="danger" onclick="markFound('${p.user_id}')" ${p.found ? "disabled" : ""}>
+          ${p.found ? "✅ Tagged" : "🏷️ Tag Hider (+500)"}
+        </button>
+      </div>
+    </div>
+  `).join("");
+}
+
+
+/* =========================================================
+   MARK FOUND
+========================================================= */
+
+async function markFound(userId){
+
+  if(!room || !myPlayer || myPlayer.role !== "seeker") return;
+
+  const target = roomPlayers.find(p => p.user_id === userId);
+  if(!target || target.role !== "hider" || target.found){
+    return;
+  }
+
+  // Tagging is separate from finding the snapshot location.
+  const {data:updatedTarget,error} = await sb
+    .from("room_players")
+    .update({found:true})
+    .eq("room_id", room.id)
+    .eq("user_id", userId)
+    .eq("found", false)
+    .select("id");
+
+  if(error){
+    console.error(error);
+    toast(error.message);
+    return;
+  }
+
+  if(!updatedTarget || updatedTarget.length === 0){
+    toast("That Hider was already tagged.");
+    return;
+  }
+
+  // Award the Seeker's points on their own player row.
+  await sb.from("room_players")
+    .update({tag_points:(myPlayer.tag_points || 0) + 500})
+    .eq("room_id", room.id)
+    .eq("user_id", user.id);
+
+  toast("🏷️ Hider tagged! +500 points");
+  await refreshRoom();
+
+  const remaining = roomPlayers.filter(p => p.role === "hider" && !p.found);
+  if(remaining.length === 0) await endGame("seeker");
+}
+
+
+async function markLocationFound(snapshotId){
+
+  if(!room || !myPlayer || myPlayer.role !== "seeker") return;
+
+  const snapshot = await sb.from("snapshots")
+    .select("id,room_id,round,location_found_by")
+    .eq("id", snapshotId)
+    .eq("room_id", room.id)
+    .eq("round", room.round)
+    .maybeSingle();
+
+  if(snapshot.error || !snapshot.data){
+    toast("That snapshot is no longer available.");
+    return;
+  }
+
+  if(snapshot.data.location_found_by){
+    toast("Location already found.");
+    return;
+  }
+
+  // The action is only valid while this round is still active.
+  const elapsed = room.round_started_at ? (Date.now() - new Date(room.round_started_at).getTime()) / 1000 : 999;
+  if(room.status !== "playing" || elapsed >= 60){
+    toast("The round has ended.");
+    return;
+  }
+
+  const {data:claimed,error} = await sb.from("snapshots")
+    .update({location_found_by:user.id, location_found_at:new Date().toISOString()})
+    .eq("id", snapshotId)
+    .is("location_found_by", null)
+    .select("id");
+
+  if(error){
+    console.error(error);
+    toast(error.message);
+    return;
+  }
+
+  if(!claimed || claimed.length === 0){
+    toast("Location already found.");
+    return;
+  }
+
+  const {error:pointsError} = await sb.from("room_players")
+    .update({location_points:(myPlayer.location_points || 0) + 250})
+    .eq("room_id", room.id)
+    .eq("user_id", user.id);
+
+  if(pointsError){
+    console.error(pointsError);
+    toast("Location found, but points could not be saved.");
+    return;
+  }
+
+  myPlayer.location_points = (myPlayer.location_points || 0) + 250;
+  toast("📍 Location found! +250 points");
+  await loadSnapshots();
+  await refreshRoom();
+}
+
+
+/* =========================================================
+   END GAME
+========================================================= */
+
+async function endGame(winner){
+
+  if(!room)
+    return;
+
+
+  const {
+    error
+  } =
+    await sb
+      .from("rooms")
+      .update({
+        status:"ended",
+        winner:winner
+      })
+      .eq(
+        "id",
+        room.id
+      );
+
+
+  if(error){
+
+    console.error(
+      error
+    );
+
+
+    toast(
+      error.message
+    );
+
+
+    return;
+  }
+
+
+  await refreshRoom();
+
+  await finishScreen();
+}
+
+
+async function hostEndGame(){
+
+  if(!room)
+    return;
+
+
+  if(
+    room.host_id !==
+    user.id
+  ){
+
+    toast(
+      "Only the host can end the game."
+    );
+
+
+    return;
+  }
+
+
+  if(
+    !confirm(
+      "End the game? This will not count as a Seeker or Hider win."
+    )
+  ){
+
+    return;
+  }
+
+
+  await endGame(
+    null
+  );
+}
+
+
+/* =========================================================
+   GAME OVER
+========================================================= */
+
+async function finishScreen(){
+
+  stopGameTimer();
+
+  stopCamera();
+
+  unsubscribeChat();
+
+
+  showOnly("over");
+
+
+  await refreshRoomDataForLeaderboard();
+  myPlayer = roomPlayers.find(p=>p.user_id===user.id)||myPlayer;
+  await finalizeStats();
+
+
+  if(
+    room.winner ===
+    null
+  ){
+
+    $("winnerText").textContent =
+      "Game ended by host";
+
+
+    $("overText").textContent =
+      "No team was awarded a win.";
+
+  }else if(
+    room.winner ===
+    "seeker"
+  ){
+
+    $("winnerText").textContent =
+      "🔎 SEEKER WINS!";
+
+
+    $("overText").textContent =
+      "Every Hider was found.";
+
+  }else{
+
+    $("winnerText").textContent =
+      "🫣 HIDERS WIN!";
+
+
+    $("overText").textContent =
+      "At least one Hider survived all 5 rounds.";
+  }
+
+
+  renderLeaderboard();
+}
+
+
+async function refreshRoomDataForLeaderboard(){
+
+  if(!room)
+    return;
+
+
+  const {
+    data:players
+  } =
+    await sb
+      .from("room_players")
+      .select("*")
+      .eq(
+        "room_id",
+        room.id
+      )
+      .order(
+        "created_at",
+        {ascending:true}
+      );
+
+
+  roomPlayers =
+    players || [];
+}
+
+
+/* =========================================================
+   LEADERBOARD
+========================================================= */
+
+function calculateScore(player){
+
+  if(!room) return 0;
+
+  const actionPoints =
+    (player.location_points || 0) +
+    (player.tag_points || 0);
+
+  if(!room.winner) return actionPoints;
+
+  if(room.winner === "seeker"){
+    return (player.role === "seeker" ? 1500 : (player.found ? 250 : 500)) + actionPoints;
+  }
+
+  if(room.winner === "hiders"){
+    return (player.role === "hider" ? (player.found ? 250 : 1500) : 250) + actionPoints;
+  }
+
+  return actionPoints;
+}
+
+
+function renderLeaderboard(){
+
+  const sorted =
+    [...roomPlayers]
+      .sort(
+        (a,b) =>
+          calculateScore(b) -
+          calculateScore(a)
+      );
+
+
+  $("leaderboard").innerHTML =
+    sorted
+      .map(
+        (player,index) => {
+
+          let result = "";
+
+
+          if(!room.winner){
+
+            result =
+              "Game ended";
+
+          }else if(
+            room.winner ===
+            "seeker" &&
+            player.role ===
+            "seeker"
+          ){
+
+            result =
+              "🏆 Winner";
+
+          }else if(
+            room.winner ===
+            "hiders" &&
+            player.role ===
+            "hider" &&
+            !player.found
+          ){
+
+            result =
+              "🏆 Survived";
+
+          }else if(
+            player.role ===
+            "hider" &&
+            player.found
+          ){
+
+            result =
+              "Found";
+
+          }else{
+
+            result =
+              "Lost";
+          }
+
+
+          return `
+
+            <div class="leader">
+
+              <div
+                style="font-weight:900;width:28px">
+                ${index+1}
+              </div>
+
+              <div class="avatar">
+                ${avatarHtml(
+                  player.avatar
+                )}
+              </div>
+
+              <div class="user-info">
+
+                <div class="user-name">
+                  ${escapeHtml(
+                    player.username ||
+                    "Player"
+                  )}
+                </div>
+
+                <div class="small">
+
+                  ${
+                    player.role ===
+                    "seeker"
+                      ? "🔎 Seeker"
+                      : "🫣 Hider"
+                  }
+
+                  · ${result}
+
+                </div>
+
+              </div>
+
+              <div class="score">
+                ${calculateScore(
+                  player
+                )}
+              </div>
+
+            </div>
+
+          `;
+
+        }
+      )
+      .join("");
+}
+
+
+/* =========================================================
+   PROFILE STATS & REWARDS
+========================================================= */
+
+const REWARDS=[
+  ["first_game","🎮","First Game","Play your first completed game.",s=>s.games_played>=1],
+  ["survivor","🫣","Survivor","Survive a game as a Hider.",s=>s.hider_wins>=1],
+  ["detective","🔎","Detective","Win a game as the Seeker.",s=>s.seeker_wins>=1],
+  ["snapshotter","📸","Snapshotter","Submit 10 snapshots.",s=>s.snapshots_submitted>=10],
+  ["veteran","⭐","Veteran","Complete 10 games.",s=>s.games_played>=10],
+  ["legend","👑","Legend","Win 25 games.",s=>s.total_wins>=25]
+];
+
+async function getMyStats(){
+  const {data}=await sb.from("player_stats").select("*").eq("user_id",user.id).maybeSingle();
+  return data || {user_id:user.id,games_played:0,total_wins:0,seeker_wins:0,hider_wins:0,snapshots_submitted:0,found_count:0,total_points:0,location_points:0,tag_points:0};
+}
+
+async function renderProfileStats(){
+  if(!user || !$("profileStats")) return;
+  const s=await getMyStats();
+  $("profileStats").innerHTML=[
+    ["Games",s.games_played],["Wins",s.total_wins],["Seeker Wins",s.seeker_wins],["Hider Wins",s.hider_wins],["Snapshots",s.snapshots_submitted],["Found",s.found_count],["Points",s.total_points || 0],["Location Points",s.location_points || 0],["Tag Points",s.tag_points || 0]
+  ].map(x=>`<div class="stat"><div class="stat-value">${x[1]}</div><div class="small">${x[0]}</div></div>`).join("");
+  $("profileBadges").innerHTML=REWARDS.map(r=>{const unlocked=r[4](s);return `<div class="badge ${unlocked?"":"locked"}"><div class="badge-icon">${r[1]}</div><strong>${r[2]}</strong><div class="small">${unlocked?"Unlocked":"Locked"}</div></div>`}).join("");
+}
+
+async function finalizeStats(){
+  if(!room || !room.winner || statsFinalized) return;
+  statsFinalized=true;
+  const {data:rows,error}=await sb.from("game_results").insert({room_id:room.id,user_id:user.id,winner:room.winner,role:myPlayer?.role||"hider",found:!!myPlayer?.found});
+  if(error && error.code !== "23505"){ console.error("Stats result error",error); statsFinalized=false; return; }
+  if(error?.code === "23505") return;
+  const {data:s}=await sb.from("player_stats").select("*").eq("user_id",user.id).maybeSingle();
+  const base=s || {user_id:user.id,games_played:0,total_wins:0,seeker_wins:0,hider_wins:0,snapshots_submitted:0,found_count:0,total_points:0,location_points:0,tag_points:0};
+  const won=(room.winner==="seeker"&&myPlayer?.role==="seeker")||(room.winner==="hiders"&&myPlayer?.role==="hider"&&!myPlayer?.found);
+  const {count:snapshotCount}=await sb.from("snapshots").select("id",{count:"exact",head:true}).eq("user_id",user.id);
+  const {error:updateError}=await sb.from("player_stats").upsert({...base,snapshots_submitted:snapshotCount||base.snapshots_submitted,games_played:base.games_played+1,total_wins:base.total_wins+(won?1:0),seeker_wins:base.seeker_wins+(won&&myPlayer?.role==="seeker"?1:0),hider_wins:base.hider_wins+(won&&myPlayer?.role==="hider"?1:0),found_count:base.found_count+(myPlayer?.role==="hider"&&myPlayer?.found?1:0),total_points:(base.total_points||0)+calculateScore(myPlayer||{}),location_points:(base.location_points||0)+(myPlayer?.location_points||0),tag_points:(base.tag_points||0)+(myPlayer?.tag_points||0)},{onConflict:"user_id"});
+  if(updateError) console.error(updateError);
+}
+
+/* =========================================================
+   CHAT
+========================================================= */
+
+async function loadChat(){
+
+  if(!room)
+    return;
+
+
+  const {
+    data,
+    error
+  } =
+    await sb
+      .from("chat_messages")
+      .select("*")
+      .eq(
+        "room_id",
+        room.id
+      )
+      .order(
+        "created_at",
+        {ascending:true}
+      )
+      .limit(100);
+
+
+  if(error){
+
+    console.error(
+      error
+    );
+
+    return;
+  }
+
+
+  $("chat").innerHTML =
+    "";
+
+
+  for(
+    const message of data || []
+  ){
+
+    addChatMessage(
+      message
+    );
+  }
+
+
+  scrollChat();
+}
+
+
+function addChatMessage(message){
+
+  const div =
+    document.createElement(
+      "div"
+    );
+
+
+  div.className =
+    "chat-message";
+
+
+  div.innerHTML = `
+
+    <div class="chat-name">
+      ${escapeHtml(
+        message.username ||
+        "Player"
+      )}
+    </div>
+
+    <div class="chat-text">
+      ${escapeHtml(
+        message.message
+      )}
+    </div>
+
+  `;
+
+
+  $("chat")
+    .appendChild(div);
+}
+
+
+function scrollChat(){
+
+  $("chat").scrollTop =
+    $("chat").scrollHeight;
+}
+
+
+async function sendChat(){
+
+  if(!room)
+    return;
+
+
+  const input =
+    $("chatInput");
+
+
+  const message =
+    input.value.trim();
+
+
+  if(!message)
+    return;
+
+
+  if(message.length > 300){
+
+    toast(
+      "Message is too long."
+    );
+
+    return;
+  }
+
+
+  input.value =
+    "";
+
+
+  const {
+    error
+  } =
+    await sb
+      .from("chat_messages")
+      .insert({
+        room_id:room.id,
+        user_id:user.id,
+        username:profile.username,
+        message
+      });
+
+
+  if(error){
+
+    console.error(
+      error
+    );
+
+
+    toast(
+      error.message
+    );
+
+
+    input.value =
+      message;
+  }
+}
+
+
+function subscribeChat(){
+
+  unsubscribeChat();
+
+
+  if(!room)
+    return;
+
+
+  loadChat();
+
+
+  chatChannel =
+    sb
+      .channel(
+        "chat-" +
+        room.id
+      )
+      .on(
+        "postgres_changes",
+        {
+          event:"INSERT",
+          schema:"public",
+          table:"chat_messages",
+          filter:
+            `room_id=eq.${room.id}`
+        },
+        payload => {
+
+          addChatMessage(
+            payload.new
+          );
+
+          scrollChat();
+        }
+      )
+      .subscribe();
+}
+
+
+function unsubscribeChat(){
+
+  if(chatChannel){
+
+    sb.removeChannel(
+      chatChannel
+    );
+
+
+    chatChannel =
+      null;
+  }
+}
+
+
+/* =========================================================
+   REAL-TIME INVITES
+========================================================= */
+
+function subscribeInvites(){
+
+  unsubscribeInvites();
+
+
+  if(!user)
+    return;
+
+
+  inviteChannel =
+    sb
+      .channel(
+        "invites-" +
+        user.id
+      )
+      .on(
+        "postgres_changes",
+        {
+          event:"INSERT",
+          schema:"public",
+          table:"game_invites",
+          filter:
+            `to_user_id=eq.${user.id}`
+        },
+        async () => {
+
+          await loadInvites();
+
+
+          toast(
+            "📨 New game invite!"
+          );
+        }
+      )
+      .subscribe();
+}
+
+
+function unsubscribeInvites(){
+
+  if(inviteChannel){
+
+    sb.removeChannel(
+      inviteChannel
+    );
+
+
+    inviteChannel =
+      null;
+  }
+}
+
+
+/* =========================================================
+   LEAVE ROOM
+========================================================= */
+
+async function leaveCurrentRoomSilently(){
+
+  if(!room)
+    return;
+
+
+  await sb
+    .from("room_players")
+    .delete()
+    .eq(
+      "room_id",
+      room.id
+    )
+    .eq(
+      "user_id",
+      user.id
+    );
+
+
+  stopRoomPolling();
+
+  stopGameTimer();
+
+  stopCamera();
+
+  unsubscribeChat();
+
+
+  room = null;
+
+  roomPlayers = [];
+
+  myPlayer = null;
+}
+
+
+async function leaveRoom(){
+
+  await leaveCurrentRoomSilently();
+
+  returnHome();
+}
+
+
+/* =========================================================
+   COPY ROOM CODE
+========================================================= */
+
+async function copyRoomCode(){
+
+  if(!room?.code)
+    return;
+
+
+  try{
+
+    await navigator.clipboard
+      .writeText(
+        room.code
+      );
+
+
+    toast(
+      "Room code copied!"
+    );
+
+  }catch{
+
+    toast(
+      "Room code: " +
+      room.code
+    );
+  }
+}
+
+
+/* =========================================================
+   START
+========================================================= */
+
+init()
+  .then(() => {
+
+    subscribeInvites();
+
+  })
+  .catch(error => {
+
+    console.error(
+      error
+    );
+
+    toast(
+      "Something went wrong starting the game."
+    );
+
+  });
+
+</script>
+
+</body>
+</html>
